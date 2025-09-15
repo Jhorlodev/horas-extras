@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "overtime",
+    "slug": "overtime",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "extra": {
+      "supabaseUrl": "https://pppdygeuoopyckdzxydb.supabase.co",
+      "supabaseKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcGR5Z2V1b29weWNrZHp4eWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY0Mzc3NzksImV4cCI6MjA1MjAxMzc3OX0.QLp_cpqTTiigWfRcmglMBsYeMH6RaA0UP6gMk9AE-B4"
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
