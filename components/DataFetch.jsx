@@ -1,83 +1,59 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { supabase } from './lib/supabaseClient';
 
-export default class ExampleThree extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      data: [],
-      loading: true,
-      error: null,
-    };
-  }
 
-  async componentDidMount() {
-    try {
-      this.setState({ loading: true, error: null });
-      const { data, error } = await supabase
-        .from('horas_extras')
-        .select('*');
-      if (error) throw error;
-      this.setState({ data: data ?? [] });
-    } catch (e) {
-      this.setState({ error: e.message ?? 'Error desconocido' });
-    } finally {
-      this.setState({ loading: false });
-    }
-  }
 
-  render() {
-    const { data, loading, error } = this.state;
+export default function DataFetch() { 
 
-    if (loading) {
-      return (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#30D0C0" />
-          <Text style={styles.loaderText}>Cargando...</Text>
-        </View>
-      );
-    }
+  const [data, setData] = useState([]);
 
+  const fetchData = async () => {
+    const { data: rows, error } = await supabase
+      .from('horas_extras')
+      .select('*')
+      
     if (error) {
-      return (
-        <View style={styles.loaderContainer}>
-          <Text style={styles.errorText}>Error: {error}</Text>
-        </View>
-      );
+      alert('Error fetching data:', error);
+    } else {
+      setData(rows);
     }
+  };
 
-    return (
-      <View style={styles.screen}>
-        <View style={styles.headerRow}>
-          <Text style={[styles.headerCell, { flex: 1.2 }]}>Fecha</Text>
-          <Text style={[styles.headerCell, { flex: 0.8 }]}>Horas</Text>
-          <Text style={[styles.headerCell, { flex: 1 }]}>Tipo</Text>
-          <Text style={[styles.headerCell, { flex: 1 }]}>Total</Text>
-          <Text style={[styles.headerCell, { flex: 1 }]}>Estado</Text>
-        </View>
-        <FlatList
-          data={data}
-          keyExtractor={(item, index) => (item?.id != null ? String(item.id) : String(index))}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item }) => (
-            <View style={styles.row}>
-              <Text style={[styles.cell, { flex: 1.2 }]}>
-                {item?.fecha ? new Date(item.fecha).toLocaleDateString() : '—'}
-              </Text>
-              <Text style={[styles.cell, { flex: 0.8 }]}>{String(item.horasExtras ?? '—')}</Text>
-              <Text style={[styles.cell, { flex: 1 }]}>{String(item.tipoHora ?? '—')}</Text>
-              <Text style={[styles.cell, { flex: 1 }]}>{String(item.total ?? '—')}</Text>
-              <Text style={[styles.cell, { flex: 1 }]}>{String(item.estado ?? 'pendiente')}</Text>
-            </View>
-          )}
-          initialNumToRender={12}
-          removeClippedSubviews
-          contentContainerStyle={{ paddingBottom: 16 }}
-        />
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+
+  const renderItem = ({ item }) => (
+    <View style={styles.row}>
+      <Text style={[styles.cell, { flex: 1.2 }]}>
+        {item?.fecha ? new Date(item.fecha).toLocaleDateString() : '—'}
+      </Text>
+      <Text style={[styles.cell, { flex: 0.8 }]}>{String(item.horas ?? '—')}</Text>
+      <Text style={[styles.cell, { flex: 1 }]}>{String(item.valor_hora ?? '—')}</Text>
+      <Text style={[styles.cell, { flex: 1 }]}>{String(item.total_pago ?? '—')}</Text>
+      
+    </View>
+  );
+
+  return (
+    <View style={styles.screen}>
+      <View style={styles.headerRow}>
+        <Text style={[styles.headerCell, { flex: 0.5 }]}>Fecha</Text>
+        <Text style={[styles.headerCell, { flex: 0.5 }]}>Horas</Text>
+        <Text style={[styles.headerCell, { flex: 0.5 }]}>Valor</Text>
+        <Text style={[styles.headerCell, { flex: 0.5 }]}>Total</Text>
+       
       </View>
-    );
-  }
+      <FlatList
+        data={data}
+        keyExtractor={(item, ) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 10 }}
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
