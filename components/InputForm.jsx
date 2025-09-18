@@ -1,18 +1,66 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Text, Switch, TouchableOpacity, Platform } from 'react-native';
+import { View, TextInput, StyleSheet, Text, Switch, TouchableOpacity, Pressable, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DataFetch from './DataFetch';
+import { supabase } from './lib/supabaseClient';
 
 const InputForm = () => {
   const [fecha, setFecha] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [horasExtras, setHorasExtras] = useState('');
+  const [horas, setHoras] = useState('');
   const [sueldoBase, setSueldoBase] = useState('');
   const [tipoHora, setTipoHora] = useState('');
   const [bonoNoche, setBonoNoche] = useState(false);
   const [valorBono, setValorBono] = useState('');
   const [detalleBono, setDetalleBono] = useState('');
+
+  const addPost = async () => {
+    // Mapear los estados a los nombres de columnas esperados por la BD (snake_case)
+    // y castear valores numéricos. También formatear fecha a YYYY-MM-DD.
+    const fechaISO = fecha instanceof Date ? fecha.toISOString().slice(0, 10) : String(fecha);
+    const horasNum = horas !== '' && horas !== null ? parseFloat(horas) : null;
+    const sueldoBaseNum = sueldoBase !== '' && sueldoBase !== null ? parseFloat(sueldoBase) : null;
+    const valorBonoNum = valorBono !== '' && valorBono !== null ? parseFloat(valorBono): null ;
+
+    // Si tu tabla requiere estos campos calculados, los incluimos de forma opcional sin cambiar la UI
+    const valorHora = sueldoBaseNum ? sueldoBaseNum * 0.0079545 : null;
+    const totalPago = horasNum != null && valorHora != null ? horasNum * valorHora : null;
+
+    // Obtener usuario autenticado para asociar el registro
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      console.log('Error obteniendo usuario:', authError);
+      return;
+    }
+    const currentUser = authData?.user;
+    if (!currentUser) {
+      console.log('No hay usuario autenticado. Inicia sesión para continuar.');
+      return;
+    }
+
+    const payload = {
+      fecha: fechaISO,
+      horas: horasNum,
+      sueldo_base: sueldoBaseNum,
+      tipo_horas: tipoHora || 'diurnas',
+      bono_noche: !!bonoNoche,
+      valor_bono: valorBonoNum,
+      detalle_bono: detalleBono || null,
+      // Campos opcionales si existen en tu esquema
+      valor_hora: valorHora,
+      total_pago: totalPago,
+      usuario_id: currentUser.id,
+    };
+
+    const { error } = await supabase
+      .from('horas_extras')
+      .insert([payload]);
+
+    if (error) {
+      console.log('Error adding data:', error);
+    }
+  };
 
   return (
     <View style={styles.formContainer}>
@@ -35,8 +83,8 @@ const InputForm = () => {
             <View style={styles.inputWrapper}>
               <TextInput
                 placeholder="Horas Extras"
-                value={horasExtras}
-                onChangeText={setHorasExtras}
+                value={horas}
+                onChangeText={setHoras}
                 keyboardType="numeric"
                 style={styles.input}
               />
@@ -103,6 +151,10 @@ const InputForm = () => {
             }}
           />
         )}
+
+        <Pressable onPress={addPost} style={styles.button}>
+          <Text style={styles.buttonText}>Agregar</Text>
+        </Pressable>
       </View>
       <DataFetch /> 
     </View>
@@ -117,6 +169,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 45,
     padding: 20,
+    rowGap: 20,
   },
   title: {
     color: '#40E0D0',
@@ -163,7 +216,7 @@ const styles = StyleSheet.create({
     borderColor: '#30D0C0',
     borderWidth: 1,
     paddingHorizontal: 10,
-    borderRadius: 5,
+    borderRadius:  8,
     backgroundColor: '#3a3a3a',
     color: '#e5e5e5',
   },
@@ -185,7 +238,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderColor: '#30D0C0',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
     paddingHorizontal: 10,
     backgroundColor: '#3a3a3a',
     height: 40,
@@ -197,9 +250,20 @@ const styles = StyleSheet.create({
  backgoundButton: {
     backgroundColor: '#30D0C0',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  buttonText: {
+    color: '#121212',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    backgroundColor: '#30D0C0', 
+    padding: 10,
+    borderRadius: 8,
   },
 })
 

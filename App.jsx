@@ -1,11 +1,33 @@
 import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import InputForm from './components/InputForm';
+import LoginScreen from './components/LoginScreen';
+import { supabase } from './components/lib/supabaseClient';
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const init = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data?.user ?? null);
+      setLoading(false);
+    };
+    init();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => {
+      sub.subscription?.unsubscribe?.();
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
-      <InputForm />
+      {!loading && (user ? <InputForm /> : <LoginScreen />)}
       <StatusBar style="light" />
     </View>
   );

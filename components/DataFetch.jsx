@@ -1,5 +1,5 @@
-import React, { Component, useEffect, useState } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, FlatList, Pressable } from 'react-native';
 import { supabase } from './lib/supabaseClient';
 
 
@@ -17,7 +17,7 @@ export default function DataFetch() {
       setPosts([]);
       console.log('Error fetching data:', error);
     } else {
-      setPosts(data);
+      setPosts(data.reverse());
     }
   };
 
@@ -25,27 +25,39 @@ export default function DataFetch() {
     fetchPosts();
   }, []);
 
-
+ 
+  const [longPress, setLongPress] = useState(false);
+ 
   const renderItem = ({ item }) => (
-    <View style={styles.row}>
+    <View style={[styles.row, { opacity: longPress ? 0.6 : 1 }]} onLongPress={() => setLongPress(true)}>
       <Text style={[styles.cell, { flex: 1.2 }]}>
         {item?.fecha ? new Date(item.fecha).toLocaleDateString() : '—'}
       </Text>
-      <Text style={[styles.cell, { flex: 0.6 }]}>{(item.horas)}</Text>
-      <Text style={[styles.cell, { flex: 1 }]}>{(item.valor_hora)}</Text>
-      <Text style={[styles.cell, { flex: 1 }]}>{(item.total_pago)}</Text>
+      <Text style={[styles.cell, { flex: 1.2 }]}>{(item.horas)}</Text>
+      <Text style={[styles.cell, { flex: 1.2 }]}>{(item.valor_hora)}</Text>
+      <Text style={[styles.cell, { flex: 1.2 }]}>{((item.total_pago).toFixed(0))}</Text>
+
       
     </View>
+         
   );
 
+  const deletePost = async (id) => {
+    const { error } = await supabase
+      .from('horas_extras')
+      .delete()
+      .eq('id', id);
+    if (error) console.log('Error deleting data:', error);
+    setLongPress(false);
+  };  
   
   return (
     <View style={styles.screen}>
       <View style={styles.headerRow}>
-        <Text style={[styles.headerCell, { flex: 0.6 }]}>Fecha</Text>
-        <Text style={[styles.headerCell, { flex: 0.6 }]}>Horas</Text>
-        <Text style={[styles.headerCell, { flex: 0.6 }]}>Valor</Text>
-        <Text style={[styles.headerCell, { flex: 0.6 }]}>Total</Text>
+        <Text style={[styles.headerCell, { flex: 1.2 }]}>Fecha</Text>
+        <Text style={[styles.headerCell, { flex: 1.2 }]}>Horas</Text>
+        <Text style={[styles.headerCell, { flex: 1.2 }]}>Valor</Text>
+        <Text style={[styles.headerCell, { flex: 1.2 }]}>Total</Text>
        
       </View>
       <FlatList
@@ -77,18 +89,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 8,
     color: "red",
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     textTransform: 'uppercase',
     textAlign: 'center',
-    marginVertical: 10,
-    marginBottom: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#121212',
+    
   },
   headerCell: {
     color: '#121212',
     fontWeight: '700',
-    fontSize: 12,
+    fontSize: 14,
     textTransform: 'uppercase',
+    textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
@@ -96,15 +111,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     backgroundColor: '#181818',
-    borderRadius: 6,
+    borderRadius: 8,
     margin: 3,
     borderBottomWidth: 1,
     borderBottomColor: '#30d0c9',
-    borderRadius: 6,
   },
   cell: {
     color: '#e5e5e5',
-    fontSize: 12,
+    fontSize: 14,
+    textAlign: 'center',
   },
   separator: {
     height: 8,
