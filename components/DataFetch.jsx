@@ -6,22 +6,23 @@ import { supabase } from './lib/supabaseClient';
 
 export default function DataFetch() { 
 
-  const [data, setData] = useState([]);
+  const [posts, setPosts] = useState([]);
 
-  const fetchData = async () => {
-    const { data: rows, error } = await supabase
+  const fetchPosts = async () => {
+    const { data, error } = await supabase
       .from('horas_extras')
       .select('*')
       
     if (error) {
-      alert('Error fetching data:', error);
+      setPosts([]);
+      console.log('Error fetching data:', error);
     } else {
-      setData(rows);
+      setPosts(data);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchPosts();
   }, []);
 
 
@@ -30,24 +31,25 @@ export default function DataFetch() {
       <Text style={[styles.cell, { flex: 1.2 }]}>
         {item?.fecha ? new Date(item.fecha).toLocaleDateString() : '—'}
       </Text>
-      <Text style={[styles.cell, { flex: 0.8 }]}>{String(item.horas ?? '—')}</Text>
-      <Text style={[styles.cell, { flex: 1 }]}>{String(item.valor_hora ?? '—')}</Text>
-      <Text style={[styles.cell, { flex: 1 }]}>{String(item.total_pago ?? '—')}</Text>
+      <Text style={[styles.cell, { flex: 0.6 }]}>{(item.horas)}</Text>
+      <Text style={[styles.cell, { flex: 1 }]}>{(item.valor_hora)}</Text>
+      <Text style={[styles.cell, { flex: 1 }]}>{(item.total_pago)}</Text>
       
     </View>
   );
 
+  
   return (
     <View style={styles.screen}>
       <View style={styles.headerRow}>
-        <Text style={[styles.headerCell, { flex: 0.5 }]}>Fecha</Text>
-        <Text style={[styles.headerCell, { flex: 0.5 }]}>Horas</Text>
-        <Text style={[styles.headerCell, { flex: 0.5 }]}>Valor</Text>
-        <Text style={[styles.headerCell, { flex: 0.5 }]}>Total</Text>
+        <Text style={[styles.headerCell, { flex: 0.6 }]}>Fecha</Text>
+        <Text style={[styles.headerCell, { flex: 0.6 }]}>Horas</Text>
+        <Text style={[styles.headerCell, { flex: 0.6 }]}>Valor</Text>
+        <Text style={[styles.headerCell, { flex: 0.6 }]}>Total</Text>
        
       </View>
       <FlatList
-        data={data}
+        data={posts}
         keyExtractor={(item, ) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 10 }}
@@ -63,7 +65,10 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     padding: 12,
     backgroundColor: '#121212',
+    paddingTop: 20,
+    marginBottom: 20,
   },
+
   headerRow: {
     flexDirection: 'row',
     backgroundColor: '#30D0C0',
@@ -71,6 +76,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 8,
     marginBottom: 8,
+    color: "red",
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    marginVertical: 10,
+    marginBottom: 20,
   },
   headerCell: {
     color: '#121212',
@@ -84,6 +96,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     backgroundColor: '#181818',
+    borderRadius: 6,
+    margin: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: '#30d0c9',
     borderRadius: 6,
   },
   cell: {
