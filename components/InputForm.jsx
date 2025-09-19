@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TextInput, StyleSheet, Text, Switch, TouchableOpacity, Pressable, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DataFetch from './DataFetch';
@@ -7,6 +7,25 @@ import { supabase } from './lib/supabaseClient';
 const InputForm = () => {
   const [fecha, setFecha] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [userImage, setUserImage] = useState('');
+
+  // Obtener el correo del usuario al cargar el componente
+  useEffect(() => {
+    const getUserEmail = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setUserEmail(user.email);
+          setUserImage(user.user_metadata?.avatar_url);
+        }
+      } catch (error) {
+        console.error('Error al obtener el correo:', error);
+      }
+    };
+
+    getUserEmail();
+  }, []);
 
   const [horas, setHoras] = useState('');
   const [sueldoBase, setSueldoBase] = useState('');
@@ -22,6 +41,9 @@ const InputForm = () => {
       console.log('Error al cerrar sesión:', e);
     }
   };
+
+
+  
 
   const addPost = async () => {
     // Mapear los estados a los nombres de columnas esperados por la BD (snake_case)
@@ -80,7 +102,13 @@ const InputForm = () => {
   return (
     <View style={styles.formContainer}>
       <View style={styles.form}>
-        <View style={styles.headerActions}>
+        <View style={styles.headerSection}>
+          {userEmail ? (
+            <Text style={styles.userEmail}>{userEmail}</Text>
+          ) : null}
+          {userImage ? (
+            <Image source={{ uri: userImage }} style={styles.avatar} />
+          ) : null}
           <Pressable onPress={handleLogout} style={styles.logoutButton}>
             <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
           </Pressable>
@@ -220,10 +248,20 @@ const styles = StyleSheet.create({
     
   },
 
-  headerActions: {
+  headerSection: {
     width: '100%',
-    alignItems: 'flex-end',
-    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3a3a3a',
+  },
+  userEmail: {
+    color: '#e5e5e5',
+    fontSize: 14,
+    fontWeight: '500',
   },
 
   logoutButton: {
@@ -257,8 +295,6 @@ const styles = StyleSheet.create({
   
   inputWrapper: {
     marginBottom: 12,
-    color: '#e5e5e5',
-     
   },
 
   inputText: {
@@ -325,6 +361,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 120,
   },
   
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
+  },
 })
 
 export default InputForm

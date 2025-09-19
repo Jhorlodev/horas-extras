@@ -23,19 +23,15 @@ export default function LoginScreen() {
     setError('');
     setInfo('');
     const { error } = await supabase.auth.signUp({ email, password });
+    const { data } = await supabase.from('profiles').insert({ email, password });
+    console.log('datos guardados correctamente');
     if (error) setError(error.message);
     else setInfo('Revisa tu correo para confirmar la cuenta.');
     setLoading(false);
   };
+ 
 
-  const perfil = async () => {
-    const { data } = await supabase.from('profiles').insert({ email, password });
-    console.log(data);
-  };
-
-  useEffect(() => {
-    perfil();
-  }, [email, password]);
+  
 
   return (
     <View style={styles.container}>
