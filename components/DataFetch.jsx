@@ -4,25 +4,53 @@ import { supabase } from './lib/supabaseClient';
 
 
 
-export default function DataFetch() { 
-
+export default function DataFetch() {
   const [posts, setPosts] = useState([]);
+  const [userId, setUserId] = useState(null);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (uid = userId) => {
+    if (!uid) return;
     const { data, error } = await supabase
       .from('horas_extras')
       .select('*')
-      
+      .eq('usuario_id', uid)
+      .order('fecha', { ascending: false });
+
     if (error) {
       setPosts([]);
       console.log('Error fetching data:', error);
     } else {
-      setPosts(data.reverse());
+      setPosts(data);
     }
   };
 
   useEffect(() => {
-    fetchPosts();
+    let channel;
+    const init = async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data?.user?.id ?? null;
+      setUserId(uid);
+      await fetchPosts(uid);
+
+      if (uid) {
+        channel = supabase
+          .channel('horas_extras_changes')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'horas_extras', filter: `usuario_id=eq.${uid}` },
+            () => {
+              fetchPosts(uid);
+            }
+          )
+          .subscribe();
+      }
+    };
+
+    init();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
  
@@ -49,7 +77,7 @@ export default function DataFetch() {
       .eq('id', id);
     if (error) console.log('Error deleting data:', error);
     setLongPress(false);
-  };  
+  };
   
   return (
     <View style={styles.screen}>
@@ -74,9 +102,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     width: '100%',
-    alignSelf: 'stretch',
     padding: 12,
     backgroundColor: '#121212',
+    borderRadius: 8,
     paddingTop: 20,
     marginBottom: 20,
   },
@@ -88,7 +116,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 8,
     marginBottom: 8,
-    color: "red",
     fontSize: 14,
     fontWeight: '700',
     textTransform: 'uppercase',

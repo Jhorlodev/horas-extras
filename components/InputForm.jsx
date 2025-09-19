@@ -15,6 +15,14 @@ const InputForm = () => {
   const [valorBono, setValorBono] = useState('');
   const [detalleBono, setDetalleBono] = useState('');
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.log('Error al cerrar sesión:', e);
+    }
+  };
+
   const addPost = async () => {
     // Mapear los estados a los nombres de columnas esperados por la BD (snake_case)
     // y castear valores numéricos. También formatear fecha a YYYY-MM-DD.
@@ -47,7 +55,6 @@ const InputForm = () => {
       bono_noche: !!bonoNoche,
       valor_bono: valorBonoNum,
       detalle_bono: detalleBono || null,
-      // Campos opcionales si existen en tu esquema
       valor_hora: valorHora,
       total_pago: totalPago,
       usuario_id: currentUser.id,
@@ -60,11 +67,24 @@ const InputForm = () => {
     if (error) {
       console.log('Error adding data:', error);
     }
+    else {
+      setHoras('');
+      setSueldoBase('');
+      setTipoHora('');
+      setBonoNoche(false);
+      setValorBono('');
+      setDetalleBono('');
+    }
   };
 
   return (
     <View style={styles.formContainer}>
       <View style={styles.form}>
+        <View style={styles.headerActions}>
+          <Pressable onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+          </Pressable>
+        </View>
         <Text style={styles.title}>Calculadora de Horas Extras</Text>
         
         <View style={styles.twoColumnContainer}>
@@ -117,7 +137,7 @@ const InputForm = () => {
             </View>
             
             <View style={[styles.switchContainer, styles.inputWrapper]}>
-              <Text style={styles.switchText}>Bono noche</Text>
+              <Text style={styles.inputText}>Bono noche</Text>
               <Switch
                 value={bonoNoche}
                 onValueChange={setBonoNoche}
@@ -170,6 +190,7 @@ const styles = StyleSheet.create({
     paddingTop: 45,
     padding: 20,
     rowGap: 20,
+    
   },
   title: {
     color: '#40E0D0',
@@ -177,18 +198,46 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     backgroundColor: '#2a2a2a',
+    padding: 10,
   },
 
   form: {
-    width: '100%',
+    width: "auto",
     padding: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#2a2a2a',
-    borderRadius: 10,
+    borderRadius: 8,
     shadowColor: '#30D0C0',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
+  },
+
+  textInput: {
+    color: '#e5e5e5',
+    
+  },
+
+  headerActions: {
+    width: '100%',
+    alignItems: 'flex-end',
+    marginBottom: 8,
+  },
+
+  logoutButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#30D0C0',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+
+  logoutButtonText: {
+    color: '#30D0C0',
+    fontWeight: '600',
   },
   
   twoColumnContainer: {
@@ -199,15 +248,22 @@ const styles = StyleSheet.create({
   
   column: {
     width: '65%',
-    padding: 5,
+    padding: 6,
     marginHorizontal: 5,
     marginVertical: 5,
+    
     
   },
   
   inputWrapper: {
     marginBottom: 12,
     color: '#e5e5e5',
+     
+  },
+
+  inputText: {
+    color: '#e5e5e5',
+    
   },
   
   input: {
@@ -219,6 +275,8 @@ const styles = StyleSheet.create({
     borderRadius:  8,
     backgroundColor: '#3a3a3a',
     color: '#e5e5e5',
+    fontSize: 16,
+    textAlign: 'center',
   },
 
   inputFull: {
@@ -264,7 +322,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#30D0C0', 
     padding: 10,
     borderRadius: 8,
+    paddingHorizontal: 120,
   },
+  
 })
 
 export default InputForm

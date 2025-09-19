@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const expoExtra = Constants?.expoConfig?.extra ?? Constants?.manifest?.extra ?? {};
 
@@ -10,4 +11,11 @@ if (!supabaseUrl || !supabaseKey) {
   console.warn('[supabaseClient] Falta configuración de Supabase. Revisa app.json -> expo.extra o variables de entorno.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false, // Recomendado en RN/Expo
+  },
+});
