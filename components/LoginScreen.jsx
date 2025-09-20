@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Image } from 'react-native';
 import { supabase } from './lib/supabaseClient';
 
 export default function LoginScreen() {
@@ -35,8 +35,12 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Inicia sesión</Text>
 
+      <Image source={require('../assets/inicio.webp')} style={styles.logo} />
+      
+      <Text style={styles.bienvenido}>Bienvenido</Text>
+      <Text style={styles.title}>Inicia sesión</Text>
+      
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
@@ -77,10 +81,24 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#121212',
+    marginBottom: 30,
+  },
+
+  logo: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
+  },
+
+  bienvenido: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#40E0D0',
   },
   title: {
     fontSize: 22,

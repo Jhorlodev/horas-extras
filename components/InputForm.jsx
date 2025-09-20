@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput, StyleSheet, Text, Switch, TouchableOpacity, Pressable, Platform } from 'react-native';
+import { View, TextInput, StyleSheet, Text, Switch, TouchableOpacity, Pressable, Platform, Image } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DataFetch from './DataFetch';
 import { supabase } from './lib/supabaseClient';
 
-const InputForm = () => {
+const InputForm = ({ onDataAdded, refreshTrigger }) => {
   const [fecha, setFecha] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userImage, setUserImage] = useState('');
+  const [imageLoading, setImageLoading] = useState(true);
 
   // Obtener el correo del usuario al cargar el componente
   useEffect(() => {
     const getUserEmail = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
+       
         if (user?.email) {
           setUserEmail(user.email);
           setUserImage(user.user_metadata?.avatar_url);
+          
         }
       } catch (error) {
         console.error('Error al obtener el correo:', error);
@@ -25,6 +28,7 @@ const InputForm = () => {
     };
 
     getUserEmail();
+    
   }, []);
 
   const [horas, setHoras] = useState('');
@@ -48,7 +52,7 @@ const InputForm = () => {
   const addPost = async () => {
     // Mapear los estados a los nombres de columnas esperados por la BD (snake_case)
     // y castear valores numéricos. También formatear fecha a YYYY-MM-DD.
-    const fechaISO = fecha instanceof Date ? fecha.toISOString().slice(0, 10) : String(fecha);
+    const fechaFormateada = fecha instanceof Date ? fecha.toISOString().split('T')[0] : String(fecha);
     const horasNum = horas !== '' && horas !== null ? parseFloat(horas) : null;
     const sueldoBaseNum = sueldoBase !== '' && sueldoBase !== null ? parseFloat(sueldoBase) : null;
     const valorBonoNum = valorBono !== '' && valorBono !== null ? parseFloat(valorBono): null ;
@@ -70,7 +74,7 @@ const InputForm = () => {
     }
 
     const payload = {
-      fecha: fechaISO,
+      fecha: fechaFormateada,
       horas: horasNum,
       sueldo_base: sueldoBaseNum,
       tipo_horas: tipoHora || 'diurnas',
@@ -88,14 +92,20 @@ const InputForm = () => {
 
     if (error) {
       console.log('Error adding data:', error);
-    }
-    else {
+    } else {
+      // Limpiar formulario
       setHoras('');
       setSueldoBase('');
       setTipoHora('');
       setBonoNoche(false);
       setValorBono('');
       setDetalleBono('');
+
+      // Mostrar mensaje de éxito y recargar datos
+      console.log('Registro agregado exitosamente');
+      if (onDataAdded) {
+        onDataAdded();
+      }
     }
   };
 
@@ -103,14 +113,33 @@ const InputForm = () => {
     <View style={styles.formContainer}>
       <View style={styles.form}>
         <View style={styles.headerSection}>
-          {userEmail ? (
+         
+          {userImage ? (
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: userImage }}
+                style={[styles.avatar, imageLoading && styles.avatarLoading]}
+                onLoadStart={() => setImageLoading(true)}
+                onLoadEnd={() => setImageLoading(false)}
+                onError={(e) => {
+                  console.log('Error cargando imagen:', e.nativeEvent);
+                  console.log('URL de imagen:', userImage);
+                  setImageLoading(false);
+                }}
+              />
+              {imageLoading && <View style={styles.loadingOverlay} />}
+            </View>
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.placeholderText}>👤</Text>
+            </View>
+          )}
+           {userEmail ? (
             <Text style={styles.userEmail}>{userEmail}</Text>
           ) : null}
-          {userImage ? (
-            <Image source={{ uri: userImage }} style={styles.avatar} />
-          ) : null}
+
           <Pressable onPress={handleLogout} style={styles.logoutButton}>
-            <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+            <Text style={styles.cerrarSesion}>Cerrar sesión</Text>
           </Pressable>
         </View>
         <Text style={styles.title}>Calculadora de Horas Extras</Text>
@@ -121,7 +150,7 @@ const InputForm = () => {
               <View pointerEvents="none">
                 <TextInput
                   placeholder="Fecha (YYYY-MM-DD)"
-                  value={fecha.toISOString().slice(0, 10)}
+                  value={fecha instanceof Date ? fecha.toLocaleDateString('en-CA') : fecha.toString()}
                   style={styles.input}
                   editable={false}
                 />
@@ -200,11 +229,11 @@ const InputForm = () => {
           />
         )}
 
-        <Pressable onPress={addPost} style={styles.button}>
-          <Text style={styles.buttonText}>Agregar</Text>
+        <Pressable onPress={addPost} style={styles.backgroundButton}>
+          <Text style={styles.agregar}>Agregar</Text>
         </Pressable>
       </View>
-      <DataFetch /> 
+      <DataFetch refreshTrigger={refreshTrigger} /> 
     </View>
   );
 }
@@ -225,8 +254,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: '#2a2a2a',
-    padding: 10,
   },
 
   form: {
@@ -245,7 +272,7 @@ const styles = StyleSheet.create({
 
   textInput: {
     color: '#e5e5e5',
-    
+    fontSize: 16,
   },
 
   headerSection: {
@@ -262,16 +289,19 @@ const styles = StyleSheet.create({
     color: '#e5e5e5',
     fontSize: 14,
     fontWeight: '500',
+    marginHorizontal: 8,
   },
 
-  logoutButton: {
+  cerrarSesion: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#30D0C0',
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
     borderRadius: 6,
-  },
+    color: '#30D0C0',
+    fontWeight: '600',
+    },
 
   logoutButtonText: {
     color: '#30D0C0',
@@ -299,7 +329,7 @@ const styles = StyleSheet.create({
 
   inputText: {
     color: '#e5e5e5',
-    
+    fontSize: 16,
   },
   
   input: {
@@ -319,11 +349,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 15,
   },
- 
-  ScrollView: {
-    width: '100%',
-    padding: 20,
-  },
 
   switchContainer: {
     flexDirection: 'row',
@@ -340,8 +365,9 @@ const styles = StyleSheet.create({
   
   switchText: {
     color: '#e5e5e5',
+    fontSize: 14,
   },
- backgoundButton: {
+  backgroundButton: {
     backgroundColor: '#30D0C0',
     padding: 10,
     borderRadius: 8,
@@ -349,23 +375,54 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  buttonText: {
+  agregar: {
     color: '#121212',
     fontSize: 16,
     fontWeight: 'bold',
     textTransform: 'uppercase',
     textAlign: 'center',
-    backgroundColor: '#30D0C0', 
-    padding: 10,
+    paddingHorizontal: 110,
     borderRadius: 8,
-    paddingHorizontal: 120,
+    backgroundColor: '#30D0C0',
+    
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 10,
+  },
+  avatarLoading: {
+    opacity: 0.5,
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#555',
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 20,
   },
 })
 

@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, FlatList, Pressable } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { StyleSheet, View, Text, FlatList, Pressable, RefreshControl } from 'react-native';
 import { supabase } from './lib/supabaseClient';
 
 
 
-export default function DataFetch() {
+export default function DataFetch({ refreshTrigger }) {
   const [posts, setPosts] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchPosts = async (uid = userId) => {
+  const fetchPosts = useCallback(async (uid = userId) => {
     if (!uid) return;
     const { data, error } = await supabase
       .from('horas_extras')
@@ -22,7 +23,13 @@ export default function DataFetch() {
     } else {
       setPosts(data);
     }
-  };
+  }, [userId]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchPosts();
+    setRefreshing(false);
+  }, [fetchPosts]);
 
   useEffect(() => {
     let channel;
@@ -51,7 +58,14 @@ export default function DataFetch() {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchPosts]);
+
+  // Recargar cuando cambie refreshTrigger
+  useEffect(() => {
+    if (userId && refreshTrigger > 0) {
+      fetchPosts(userId);
+    }
+  }, [refreshTrigger, userId, fetchPosts]);
 
  
   const [longPress, setLongPress] = useState(false);
@@ -59,13 +73,13 @@ export default function DataFetch() {
   const renderItem = ({ item }) => (
     <View style={[styles.row, { opacity: longPress ? 0.6 : 1 }]} onLongPress={() => setLongPress(true)}>
       <Text style={[styles.cell, { flex: 1.2 }]}>
-        {item?.fecha ? new Date(item.fecha).toLocaleDateString() : '—'}
+        {item?.fecha ? new Date(item.fecha + 'T12:00:00').toLocaleDateString('es-ES') : '—'}
       </Text>
       <Text style={[styles.cell, { flex: 1.2 }]}>{(item.horas)}</Text>
       <Text style={[styles.cell, { flex: 1.2 }]}>{(item.valor_hora)}</Text>
       <Text style={[styles.cell, { flex: 1.2 }]}>{((item.total_pago).toFixed(0))}</Text>
 
-      
+
     </View>
          
   );
@@ -93,6 +107,14 @@ export default function DataFetch() {
         keyExtractor={(item, ) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 10 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#30D0C0']}
+            tintColor="#30D0C0"
+          />
+        }
       />
     </View>
   );
@@ -123,7 +145,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#121212',
-    
+
   },
   headerCell: {
     color: '#121212',
@@ -160,8 +182,10 @@ const styles = StyleSheet.create({
   loaderText: {
     marginTop: 8,
     color: '#e5e5e5',
+    fontSize: 14,
   },
   errorText: {
     color: '#e5e5e5',
+    fontSize: 14,
   },
 });

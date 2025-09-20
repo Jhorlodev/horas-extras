@@ -8,6 +8,11 @@ import { supabase } from './components/lib/supabaseClient';
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const triggerRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -27,7 +32,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      {!loading && (user ? <InputForm /> : <LoginScreen />)}
+      {!loading && (user ? <InputForm onDataAdded={triggerRefresh} refreshTrigger={refreshTrigger} /> : <LoginScreen />)}
       <StatusBar style="light" />
     </View>
   );

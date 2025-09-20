@@ -4,30 +4,34 @@
     "slug": "overtime",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/inicio.webp",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "extra": {
       "supabaseUrl": "https://pppdygeuoopyckdzxydb.supabase.co",
-      "supabaseKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcGR5Z2V1b29weWNrZHp4eWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY0Mzc3NzksImV4cCI6MjA1MjAxMzc3OX0.QLp_cpqTTiigWfRcmglMBsYeMH6RaA0UP6gMk9AE-B4"
+      "supabaseKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcGR5Z2V1b29weWNrZHp4eWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY0Mzc3NzksImV4cCI6MjA1MjAxMzc3OX0.QLp_cpqTTiigWfRcmglMBsYeMH6RaA0UP6gMk9AE-B4",
+      "eas": {
+        "projectId": "555374ef-9faa-4521-b2a6-060d42bd8311"
+      }
     },
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/inicio.webp",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
+    "ios": {    
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/inicio.webp",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.jhorlodev.overtime"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/inicio.webp"
     }
   }
 }
