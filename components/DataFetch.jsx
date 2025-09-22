@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View, Text, FlatList, Pressable, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, FlatList, Pressable, RefreshControl, Modal } from 'react-native';
 import { supabase } from './lib/supabaseClient';
 
 
@@ -8,6 +8,7 @@ export default function DataFetch({ refreshTrigger }) {
   const [posts, setPosts] = useState([]);
   const [userId, setUserId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const fetchPosts = useCallback(async (uid = userId) => {
     if (!uid) return;
@@ -71,6 +72,18 @@ export default function DataFetch({ refreshTrigger }) {
   const [longPress, setLongPress] = useState(false);
  
   const renderItem = ({ item }) => (
+    <Pressable onPress={() => setModalVisible(true)}>
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Detalles</Text>
+          <Text style={styles.modalText}>{item.fecha}</Text>
+          <Text style={styles.modalText}>{item.detalle_bono}</Text>
+          <Text style={styles.modalText}>{item.valor_bono}</Text>
+          <Pressable style={styles.modalButton} onPress={() => setModalVisible(false)}>
+            <Text style={styles.modalButtonText}>Cerrar</Text>
+          </Pressable>
+        </View>
+      </Modal>
     <View style={[styles.row, { opacity: longPress ? 0.6 : 1 }]} onLongPress={() => setLongPress(true)}>
       <Text style={[styles.cell, { flex: 1.2 }]}>
         {item?.fecha ? new Date(item.fecha + 'T12:00:00').toLocaleDateString('es-ES') : '—'}
@@ -81,6 +94,7 @@ export default function DataFetch({ refreshTrigger }) {
 
 
     </View>
+    </Pressable>
          
   );
 
@@ -187,5 +201,52 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#e5e5e5',
     fontSize: 14,
+  },
+  modalContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e5e5e5',
+    padding: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#121212',
+  },
+
+  modalTitle: {
+    fontSize: 50,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
+    color: '#121212',
+  },
+
+  modalButtonContainer: {
+    marginTop: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButtonText: {
+    color: '#121212',
+    fontWeight: '700',
+    fontSize: 14,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
+  modalButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 60,
+    backgroundColor: '#30D0C0',
+    borderRadius: 8,
+    margin: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: '#30d0c9',
+  },
+  modalText: {
+    color: '#121212',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
