@@ -20,10 +20,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { supabase } from './lib/supabaseClient';
-import DataFetch from './DataFetch';
+import DataFetch from './DataFetch'
+
 
 const screenWidth = Dimensions.get('window').width;
+const diasCortos = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+const url = 'https://unavatar.io/lopezyhorman';
 const InputForm = ({ onDataAdded, refreshTrigger }) => {
   const [fecha, setFecha] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -63,7 +66,7 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
   const [totalHorasRango, setTotalHorasRango] = useState(0);
   const [horasSemana, setHorasSemana] = useState(0);
   const [horasFin, setHorasFin] = useState(0);
-
+  const [rangeRows, setRangeRows] = useState([]);
   const buscarHorasPorRango = async () => {
     try {
       const { data: auth } = await supabase.auth.getUser();
@@ -83,6 +86,10 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
       if (error) throw error;
 
       const rows = Array.isArray(data) ? data : [];
+      const rowsSorted = rows
+        .map((r) => ({ ...r, fechaNum: dayjs(r.fecha).valueOf() }))
+        .sort((a, b) => a.fechaNum - b.fechaNum)
+        .map(({ fechaNum, ...rest }) => rest);
       const totals = rows.reduce(
         (acc, it) => {
           const h = Number(it.horas) || 0;
@@ -94,6 +101,7 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
         },
         { weekday: 0, weekend: 0, total: 0 }
       );
+      setRangeRows(rowsSorted);
       setHorasSemana(totals.weekday);
       setHorasFin(totals.weekend);
       setTotalHorasRango(totals.total);
@@ -187,6 +195,9 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
               <Text style={styles.userEmail} numberOfLines={1} ellipsizeMode="tail">
                 {userEmail}
               </Text>
+              
+             
+
               {userImage ? (
                 <Image
                   source={{ uri: userImage }}
@@ -195,12 +206,16 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
                   onLoadEnd={() => setImageLoading(false)}
                   onError={() => setImageLoading(false)}
                 />
+              ) : userEmail ? (
+                  <Image source={{ uri: url }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Text style={styles.placeholderText}>👤</Text>
                 </View>
               )}
             </View>
+
+          
 
             <View style={styles.form}>
               <Text style={styles.title}>Calculadora de Horas Extras</Text>
@@ -380,6 +395,40 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
                     </Text>
                   ) : (
                     <>
+                      <View style={styles.tableContainer}>
+                        <View style={styles.tableHeader}>
+                          <Text style={[styles.headerCell, { flex: 1.2 }]}>Fecha</Text>
+                          <Text style={[styles.headerCell, { flex: 1 }]}>Día</Text>
+                          <Text style={[styles.headerCell, { flex: 1, textAlign: 'right' }]}>Horas</Text>
+                          <Text style={[styles.headerCell, { width: 28, textAlign: 'center' }]}>⏱️</Text>
+                        </View>
+                        <View style={{ maxHeight: 220 }}>
+                          <ScrollView>
+                            {rangeRows.map((row, idx) => {
+                              const d = dayjs(row.fecha);
+                              const dayIdx = d.day();
+                              const isWeekend = dayIdx === 0 || dayIdx === 6;
+                              return (
+                                <View key={`${row.fecha}-${idx}`} style={styles.tableRow}>
+                                  <Text style={[styles.cell, { flex: 1.2 }]}>{d.format('DD/MM/YYYY')}</Text>
+                                  <Text style={[styles.cell, { flex: 1 }]}>{diasCortos[dayIdx]}</Text>
+                                  <Text style={[styles.cell, { flex: 1, textAlign: 'right', color: '#40E0D0', fontWeight: '700' }]}>
+                                    {(Number(row.horas) || 0).toFixed(2)}
+                                  </Text>
+                                  <View style={{ width: 28, alignItems: 'center' }}>
+                                    {isWeekend ? (
+                                      <Icon name="weekend" size={18} color="#f5a623" />
+                                    ) : (
+                                      <Icon name="work" size={18} color="#30D0C0" />
+                                    )}
+                                  </View>
+                                </View>
+                              );
+                            })}
+                          </ScrollView>
+                        </View>
+                      </View>
+
                       <View style={styles.summaryRow}>
                         <Icon name="work" size={18} color="#40E0D0" />
                         <Text style={styles.summaryLabel}>🗓️ Días de semana</Text>
@@ -410,7 +459,7 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
               </View>
             </Modal>
 
-            {/* Cambié el fondo para que combine y no resalte */}
+           
             <View style={styles.dataFetchContainer}>
               <DataFetch refreshTrigger={refreshTrigger} />
             </View>
@@ -649,10 +698,43 @@ const styles = StyleSheet.create({
   dataFetchContainer: {
     marginTop: 20,
     width: '100%',
-    backgroundColor: '#394545', // color equilibrado, poco resaltante y agradable con azul/celeste
+    backgroundColor: '#394545',
     borderRadius: 8,
     padding: 10,
   },
+  tableContainer: {
+    borderWidth: 1,
+    borderColor: '#3a3a3a',
+    borderRadius: 8,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#343434',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3a3a3a',
+  },
+  headerCell: {
+    color: '#bbb',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  cell: {
+    color: '#e5e5e5',
+    fontSize: 14,
+  },
+ 
 });
 
 export default InputForm;

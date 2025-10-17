@@ -14,7 +14,7 @@ const DateRangePicker = ({ onDateRangeSelected }) => {
     setShowStartPicker(false);
     if (selectedDate) {
       setStartDate(selectedDate);
-      // Si la fecha de inicio es mayor que la de fin, actualizamos la de fin
+      
       if (dayjs(selectedDate).isAfter(dayjs(endDate))) {
         setEndDate(selectedDate);
       }
