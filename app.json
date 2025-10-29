@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "overtime",
+    "name": "Overtime",
     "slug": "overtime",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "orientation": "portrait",
-    "icon": "./assets/inicio.webp",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "extra": {
@@ -15,8 +15,12 @@
       }
     },
     "splash": {
-      "image": "./assets/inicio.webp",
+      "image": "./assets/relojmovimiento.mp4",
       "resizeMode": "contain",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/relojmovimiento.mp4",
+        "backgroundColor": "#ffffff"
+      },
       "backgroundColor": "#ffffff"
     },
     "ios": {    
@@ -24,14 +28,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/inicio.webp",
+        "foregroundImage": "./assets/OvertimeLogo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.jhorlodev.overtime"
     },
     "web": {
-      "favicon": "./assets/inicio.webp"
+      "favicon": "./assets/icon.png"
     }
   }
 }

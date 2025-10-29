@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { supabase } from './lib/supabaseClient';
 import DataFetch from './DataFetch'
 
@@ -463,6 +463,7 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
             <View style={styles.dataFetchContainer}>
               <DataFetch refreshTrigger={refreshTrigger} />
             </View>
+            <Text>hola</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

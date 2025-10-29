@@ -9,6 +9,7 @@ export default function DataFetch({ refreshTrigger }) {
   const [userId, setUserId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const fetchPosts = useCallback(async (uid = userId) => {
     if (!uid) return;
@@ -68,34 +69,21 @@ export default function DataFetch({ refreshTrigger }) {
     }
   }, [refreshTrigger, userId, fetchPosts]);
 
- 
-  const [longPress, setLongPress] = useState(false);
- 
   const renderItem = ({ item }) => (
-    <Pressable onPress={() => setModalVisible(true)}>
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Detalles</Text>
-          <Text style={styles.modalText}>{item.fecha}</Text>
-          <Text style={styles.modalText}>{item.detalle_bono}</Text>
-          <Text style={styles.modalText}>{item.valor_bono}</Text>
-          <Pressable style={styles.modalButton} onPress={() => setModalVisible(false)}>
-            <Text style={styles.modalButtonText}>Cerrar</Text>
-          </Pressable>
-        </View>
-      </Modal>
-    <View style={[styles.row, { opacity: longPress ? 0.6 : 1 }]} onLongPress={() => setLongPress(true)}>
+    <Pressable
+      onPress={() => {
+        setSelectedItem(item);
+        setModalVisible(true);
+      }}
+      style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+    >
       <Text style={[styles.cell, { flex: 1.2 }]}>
         {item?.fecha ? new Date(item.fecha + 'T12:00:00').toLocaleDateString('es-ES') : '—'}
       </Text>
-      <Text style={[styles.cell, { flex: 1.2 }]}>{(item.horas)}</Text>
-      <Text style={[styles.cell, { flex: 1.2 }]}>{(item.valor_hora)}</Text>
-      <Text style={[styles.cell, { flex: 1.2 }]}>{((item.total_pago).toFixed(0))}</Text>
-
-
-    </View>
+      <Text style={[styles.cell, { flex: 1.2 }]}>{item.horas}</Text>
+      <Text style={[styles.cell, { flex: 1.2 }]}>{item.valor_hora}</Text>
+      <Text style={[styles.cell, { flex: 1.2 }]}>{(item.total_pago).toFixed(0)}</Text>
     </Pressable>
-         
   );
 
   const deletePost = async (id) => {
@@ -104,21 +92,38 @@ export default function DataFetch({ refreshTrigger }) {
       .delete()
       .eq('id', id);
     if (error) console.log('Error deleting data:', error);
-    setLongPress(false);
   };
-  
+
   return (
     <View style={styles.screen}>
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Detalles</Text>
+          <Text style={styles.modalText}>{selectedItem?.fecha}</Text>
+          <Text style={styles.modalText}>{selectedItem?.detalle_bono}</Text>
+          <Text style={styles.modalText}>horas extra:  {selectedItem?.horas}</Text>
+          <Text style={styles.modalText}>valor hora:  {selectedItem?.valor_hora}</Text>
+          <Text style={styles.modalText}>total pago:  {selectedItem?.total_pago}</Text>
+          <Pressable style={styles.modalButton} onPress={() => setModalVisible(false)}>
+            <Text style={styles.modalButtonText}>Cerrar</Text>
+          </Pressable>
+        </View>
+      </Modal>
+
       <View style={styles.headerRow}>
         <Text style={[styles.headerCell, { flex: 1.2 }]}>Fecha</Text>
         <Text style={[styles.headerCell, { flex: 1.2 }]}>Horas</Text>
         <Text style={[styles.headerCell, { flex: 1.2 }]}>Valor</Text>
         <Text style={[styles.headerCell, { flex: 1.2 }]}>Total</Text>
-       
       </View>
       <FlatList
         data={posts}
-        keyExtractor={(item, ) => item.id}
+        keyExtractor={(item) => item.id?.toString?.() ?? String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 10 }}
         refreshControl={

@@ -30,6 +30,9 @@ export default function App() {
     };
   }, []);
 
+  
+  
+
   return (
     <View style={styles.container}>
       {!loading && (user ? <InputForm onDataAdded={triggerRefresh} refreshTrigger={refreshTrigger} /> : <LoginScreen />)}
