@@ -19,6 +19,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from './lib/supabaseClient';
 import DataFetch from './DataFetch'
 
@@ -26,7 +27,7 @@ import DataFetch from './DataFetch'
 const screenWidth = Dimensions.get('window').width;
 const diasCortos = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-const url = 'https://unavatar.io/lopezyhorman';
+const url = 'https://unavatar.io/x/lopezyhorman';
 const InputForm = ({ onDataAdded, refreshTrigger }) => {
   const [fecha, setFecha] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -462,8 +463,11 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
            
             <View style={styles.dataFetchContainer}>
               <DataFetch refreshTrigger={refreshTrigger} />
-            </View>
-            <Text>hola</Text>
+            </View >
+           <View style={styles.footerContainer}>
+            <Text style={styles.footerText}>hecho por valdev</Text>
+            <MaterialCommunityIcons name="head-flash-outline" size={24} color="#fff" />
+           </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -734,6 +738,19 @@ const styles = StyleSheet.create({
   cell: {
     color: '#e5e5e5',
     fontSize: 14,
+  },
+  footerText: {
+    color: '#fff',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+    gap: 8,
   },
  
 });

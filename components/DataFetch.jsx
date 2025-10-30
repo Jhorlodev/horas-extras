@@ -99,7 +99,7 @@ export default function DataFetch({ refreshTrigger }) {
       <Modal
         visible={modalVisible}
         animationType="slide"
-        transparent={false}
+        transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -211,11 +211,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#e5e5e5',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     padding: 20,
-    borderRadius: 8,
+    borderRadius: 50,
     borderWidth: 1,
-    borderColor: '#121212',
+    borderColor: '#30D0C0',
+    margin: 15,
+    
   },
 
   modalTitle: {
@@ -223,7 +225,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
-    color: '#121212',
+    color: '#fff',
   },
 
   modalButtonContainer: {
@@ -234,6 +236,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: '#121212',
+
     fontWeight: '700',
     fontSize: 14,
     textTransform: 'uppercase',
@@ -250,8 +253,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#30d0c9',
   },
   modalText: {
-    color: '#121212',
-    fontSize: 14,
+    color: '#fff',
+    fontSize: 18,
     textAlign: 'center',
   },
 });
