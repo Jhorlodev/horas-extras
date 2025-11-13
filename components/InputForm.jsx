@@ -189,6 +189,7 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.formContainer}>
+            {/* Formulario */}
             <View style={styles.headerSection}>
               <TouchableOpacity onPress={handleLogout} style={styles.logoutIcon}>
                 <Icon name="close" size={28} color="#30D0C0" />
@@ -461,15 +462,15 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
             </Modal>
 
            
-            <View style={styles.dataFetchContainer}>
-              <DataFetch refreshTrigger={refreshTrigger} />
-            </View >
-           <View style={styles.footerContainer}>
-            <Text style={styles.footerText}>hecho por valdev</Text>
-            <MaterialCommunityIcons name="head-flash-outline" size={24} color="#fff" />
-           </View>
           </View>
         </ScrollView>
+        <View style={styles.dataFetchContainer}>
+          <DataFetch refreshTrigger={refreshTrigger} />
+        </View>
+        <View style={styles.footerContainer}>
+          <Text style={styles.footerText}>hecho por valdev</Text>
+          <MaterialCommunityIcons name="head-flash-outline" size={24} color="#fff" />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

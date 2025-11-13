@@ -10,28 +10,42 @@ export default function DataFetch({ refreshTrigger }) {
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchPosts = useCallback(async (uid = userId) => {
+  const PAGE_SIZE = 10;
+
+  const fetchPosts = useCallback(async (uid = userId, pageNum = 1, append = false) => {
     if (!uid) return;
+    const from = (pageNum - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
     const { data, error } = await supabase
       .from('horas_extras')
       .select('*')
       .eq('usuario_id', uid)
-      .order('fecha', { ascending: false });
+      .order('fecha', { ascending: false })
+      .range(from, to);
 
     if (error) {
-      setPosts([]);
+      if (!append) setPosts([]);
       console.log('Error fetching data:', error);
     } else {
-      setPosts(data);
+      if (append) {
+        setPosts((prev) => [...prev, ...data]);
+      } else {
+        setPosts(data);
+      }
+      setHasMore(data.length === PAGE_SIZE);
     }
   }, [userId]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchPosts();
+    setPage(1);
+    await fetchPosts(userId, 1, false);
     setRefreshing(false);
-  }, [fetchPosts]);
+  }, [fetchPosts, userId]);
 
   useEffect(() => {
     let channel;
@@ -39,7 +53,8 @@ export default function DataFetch({ refreshTrigger }) {
       const { data } = await supabase.auth.getUser();
       const uid = data?.user?.id ?? null;
       setUserId(uid);
-      await fetchPosts(uid);
+      setPage(1);
+      await fetchPosts(uid, 1, false);
 
       if (uid) {
         channel = supabase
@@ -48,7 +63,8 @@ export default function DataFetch({ refreshTrigger }) {
             'postgres_changes',
             { event: '*', schema: 'public', table: 'horas_extras', filter: `usuario_id=eq.${uid}` },
             () => {
-              fetchPosts(uid);
+              setPage(1);
+              fetchPosts(uid, 1, false);
             }
           )
           .subscribe();
@@ -65,7 +81,8 @@ export default function DataFetch({ refreshTrigger }) {
   // Recargar cuando cambie refreshTrigger
   useEffect(() => {
     if (userId && refreshTrigger > 0) {
-      fetchPosts(userId);
+      setPage(1);
+      fetchPosts(userId, 1, false);
     }
   }, [refreshTrigger, userId, fetchPosts]);
 
@@ -91,8 +108,14 @@ export default function DataFetch({ refreshTrigger }) {
       .from('horas_extras')
       .delete()
       .eq('id', id);
-    if (error) console.log('Error deleting data:', error);
+    if (error) {
+      console.log('Error al eliminar registro:', error);
+    } else {
+      await fetchPosts(userId, 1, false);
+      setModalVisible(false);
+    }
   };
+
 
   return (
     <View style={styles.screen}>
@@ -112,6 +135,9 @@ export default function DataFetch({ refreshTrigger }) {
           <Pressable style={styles.modalButton} onPress={() => setModalVisible(false)}>
             <Text style={styles.modalButtonText}>Cerrar</Text>
           </Pressable>
+          <Pressable style={styles.modalButton} onPress={() => deletePost(selectedItem?.id)}>
+            <Text style={styles.modalButtonText}>Eliminar</Text>
+          </Pressable>
         </View>
       </Modal>
 
@@ -121,35 +147,53 @@ export default function DataFetch({ refreshTrigger }) {
         <Text style={[styles.headerCell, { flex: 1.2 }]}>Valor</Text>
         <Text style={[styles.headerCell, { flex: 1.2 }]}>Total</Text>
       </View>
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id?.toString?.() ?? String(item.id)}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 10 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#30D0C0']}
-            tintColor="#30D0C0"
-          />
-        }
-      />
+      <View style={styles.listContainer}>
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id?.toString?.() ?? String(item.id)}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 10 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#30D0C0']}
+              tintColor="#30D0C0"
+            />
+          }
+          onEndReached={async () => {
+            if (loadingMore || !hasMore) return;
+            setLoadingMore(true);
+            const nextPage = page + 1;
+            await fetchPosts(userId, nextPage, true);
+            setPage(nextPage);
+            setLoadingMore(false);
+          }}
+          onEndReachedThreshold={0.2}
+          ListFooterComponent={loadingMore ? (
+            <Text style={{ color: '#e5e5e5', textAlign: 'center', margin: 10 }}>Cargando más...</Text>
+          ) : null}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    flex: 1,
     width: '100%',
     padding: 12,
     backgroundColor: '#121212',
     borderRadius: 8,
     paddingTop: 20,
     marginBottom: 20,
+    alignItems: 'center',
   },
-
+  listContainer: {
+    maxHeight: 350, 
+    width: '100%',
+    flexGrow: 0,
+  },
   headerRow: {
     flexDirection: 'row',
     backgroundColor: '#30D0C0',

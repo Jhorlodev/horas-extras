@@ -22,6 +22,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-sweet-alert": "^3.5.0",
     "react-native-table-component": "^1.2.2",
     "react-native-ui-datepicker": "^3.1.2",
     "react-native-video": "^6.17.0",
