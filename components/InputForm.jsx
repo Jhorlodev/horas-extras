@@ -468,7 +468,7 @@ const InputForm = ({ onDataAdded, refreshTrigger }) => {
           <DataFetch refreshTrigger={refreshTrigger} />
         </View>
         <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>hecho por valdev</Text>
+          <Text style={styles.footerText}>hecho por jhorman</Text>
           <MaterialCommunityIcons name="head-flash-outline" size={24} color="#fff" />
         </View>
       </KeyboardAvoidingView>
