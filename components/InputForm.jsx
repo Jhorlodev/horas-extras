@@ -10,12 +10,12 @@ import {
   Platform,
   Image,
   Modal,
-  SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rangeTitle: {
-    color: '#e5e5e5',
+    color: '#40E0D0',
     fontWeight: '600',
     marginBottom: 4,
   },

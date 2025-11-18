@@ -153,6 +153,7 @@ export default function DataFetch({ refreshTrigger }) {
           keyExtractor={(item) => item.id?.toString?.() ?? String(item.id)}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 10 }}
+          ListEmptyComponent={<Text style={{ color: '#e5e5e5', textAlign: 'center', margin: 20 }}>No hay datos registrados</Text>}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -191,10 +192,12 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     maxHeight: 350, 
+    paddingVertical: 10,
     width: '100%',
     flexGrow: 0,
   },
   headerRow: {
+    
     flexDirection: 'row',
     backgroundColor: '#30D0C0',
     borderRadius: 8,
